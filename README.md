@@ -14,3 +14,10 @@ To install testing packages and run tests locally:
 pip install -e .[test]
 pytest
 ```
+
+## Installing and running the ruff linter/formatter
+
+``` bash
+pip install ruff
+ruff format
+```
