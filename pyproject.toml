@@ -76,3 +76,28 @@ docstring-code-format = false
 # This only has an effect when the `docstring-code-format` setting is
 # enabled.
 docstring-code-line-length = "dynamic"
+
+[build-system]
+requires = ["setuptools >= 80.10.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "NISARStaticLayersAPI"
+version = "0.0.1"
+dependencies = [
+    "requests",
+    "boto3",
+    "botocore"
+]
+optional-dependencies = { test = ['pytest'] }
+
+[tool.setuptools.package-dir]
+NISARStaticLayersAPI = "src"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "tests",
+    "integration",
+]
