@@ -95,7 +95,7 @@ class Granule:
 
     def _get_posting(self, preferred_posting_idx: int) -> str:
         freq = self.freq_a if self.freq_a != '00' else self.freq_b
-        posting = FREQ_POSTING_MAP[self.product_type][freq][0]
+        posting = FREQ_POSTING_MAP[self.product_type][freq][preferred_posting_idx]
         return f'{posting[0]}_{posting[1]}'
 
 
