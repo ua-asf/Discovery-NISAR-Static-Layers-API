@@ -12,8 +12,10 @@ gslc_test_data = {
             "freq_a": "40",
             "freq_b": "05",
             "start_time": "20241021T082112",
-        }
+        },
     ),
+    "static_layer_prefix": "NISAR_L2_STATIC_132_A_029_005_005_",
+    # "static_layer": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001",
 }
 
 
@@ -29,6 +31,8 @@ gcov_test_data = {
             "start_time": "20240621T233525",
         }
     ),
+    "static_layer_prefix": "NISAR_L2_STATIC_112_A_085_020_020_",
+    # "static_layer": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001",
 }
 
 gunw_test_data = {
@@ -43,6 +47,8 @@ gunw_test_data = {
             "start_time": "20240403T084941",
         }
     ),
+    "static_layer_prefix": "NISAR_L2_STATIC_002_A_123_080_080_",
+    # "static_layer": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001",
 }
 
 goff_test_data = gunw_test_data = {
@@ -57,6 +63,8 @@ goff_test_data = gunw_test_data = {
             "start_time": "20240403T084941",
         }
     ),
+    "static_layer_prefix": "NISAR_L2_STATIC_002_A_123_080_080_",
+    # "static_layer": "NISAR_L2_STATIC_002_A_123_080_080_20250921T082112_R05000_J_001",
 }
 
 test_data = [gslc_test_data, gcov_test_data, gunw_test_data, goff_test_data]
@@ -96,7 +104,6 @@ test_granule_paths = [
     },
 ]
 
-
 def test_get_granule():
     for data in test_data:
         assert data["granule"] == _get_granule(data["file_name"])
@@ -117,3 +124,8 @@ def test_get_granule_name():
                 _get_file_name(granule["path"])
         else:
             assert _get_file_name(granule["path"]) == granule["file_name"]
+
+def test_Granule_match():
+    for item in test_data:
+        assert item['granule'].get_static_layer_prefix() == item['static_layer_prefix']
+    pass
