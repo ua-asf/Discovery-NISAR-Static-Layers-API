@@ -89,11 +89,11 @@ class Granule:
     def match(self):
         pass
 
-    def get_static_layer_prefix(self):
-        return f"NISAR_L2_STATIC_{self.track_id}_A_{self.frame_id}_{self._get_posting()}_"
+    def get_static_layer_prefix(self, preferred_posting_idx: int = 0):
+        return f"NISAR_L2_STATIC_{self.track_id}_A_{self.frame_id}_{self._get_posting(preferred_posting_idx)}_"
         
 
-    def _get_posting(self) -> str:
+    def _get_posting(self, preferred_posting_idx: int) -> str:
         freq = self.freq_a if self.freq_a != '00' else self.freq_b
         posting = FREQ_POSTING_MAP[self.product_type][freq][0]
         return f'{posting[0]}_{posting[1]}'
