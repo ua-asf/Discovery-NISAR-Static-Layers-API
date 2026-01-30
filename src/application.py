@@ -5,8 +5,22 @@ from datetime import datetime
 import re
 import boto3
 import botocore
-import requests
 import logging
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
+
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+DEFAULT_HEADERS = {
+    "Access-Control-Allow-Origin": "*",
+}
+
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -14,9 +28,7 @@ logger.setLevel(logging.INFO)
 GRANULE_PATTERN_STR = r"NISAR_L2_\D{2}_(?P<product_type>\D{4})_\d{3}_(?P<track_id>\d{3})_\D_(?P<frame_id>\d{3})_(?:\d{3}_)?(?P<freq_a>\d{2})(?P<freq_b>\d{2})\D*(?P<start_time>\d{8}T\d{6})"
 GRANULE_PATTERN = re.compile(GRANULE_PATTERN_STR)
 
-STATIC_PATTERN_STR = (
-    r"NISAR_L2_STATIC_.*(?P<validity_start_time>\d{8}T\d{6})_(?P<crid>R\d{5})_\D_(?P<counter>\d{3})"
-)
+STATIC_PATTERN_STR = r"NISAR_L2_STATIC_.*(?P<validity_start_time>\d{8}T\d{6})_(?P<crid>R\d{5})_\D_(?P<counter>\d{3})"
 STATIC_PATTERN = re.compile(STATIC_PATTERN_STR)
 """Maps frequency range bandwidth values to corresponding postings, the first item being the preferred posting for that frequency
 and the remainder being backups in ascending order
@@ -81,7 +93,7 @@ FREQ_POSTING_MAP = {
         "77": [("080", "080"), ("020", "020"), ("010", "010")],
     },
 }
-boto_client = boto3.client("s3")
+# boto_client = boto3.client("s3")
 
 # example static
 # NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001
@@ -139,7 +151,9 @@ class Granule:
                 file_name: str = item["Key"]
                 static_granule = self.parse_static(file_name=file_name)
 
-                validity_start_time = datetime.fromisoformat(static_granule.validity_start_time)
+                validity_start_time = datetime.fromisoformat(
+                    static_granule.validity_start_time
+                )
                 start_time = datetime.fromisoformat(self.start_time)
 
                 if validity_start_time < start_time:
@@ -169,12 +183,24 @@ class Granule:
         return StaticGranule(file_name, **result.groupdict())
 
 
+@app.get("/")
+def read_root():
+    return {"Status": "Ok"}
+
+
+@app.get("/test")
+def get_layer_redirect():
+    return RedirectResponse(url="https://www.example.com")
+
+
 def lambda_handler(event, context):
     print(f"boto3 version: {boto3.__version__}")
     print(f"botocore version: {botocore.__version__}")
 
     http_method = event["requestContext"]["http"]["method"]
-    path: str = str(event["requestContext"]["http"]["path"])  # '.../.../{granule_id}.h5'
+    path: str = str(
+        event["requestContext"]["http"]["path"]
+    )  # '.../.../{granule_id}.h5'
 
     if http_method == "GET":
         file_name = _get_file_name(path)
