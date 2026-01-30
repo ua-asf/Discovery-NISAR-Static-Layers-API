@@ -1,5 +1,5 @@
 import pytest
-from NISARStaticLayersAPI.application import Granule, _get_granule, _get_file_name
+from NISARStaticLayersAPI.application import Granule, _get_granule, _get_file_name, StaticGranule
 
 # Below are examples of how data should be parsed from the granule ids of the 4 L2 products
 gslc_test_data = {
@@ -67,6 +67,15 @@ goff_test_data = gunw_test_data = {
     # "static_layer": "NISAR_L2_STATIC_002_A_123_080_080_20250921T082112_R05000_J_001",
 }
 
+static_granule_example = {
+    "file_name": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001",
+    "static_granule": StaticGranule(
+        validity_start_time="20250921T082112",
+        crid="R05000",
+        counter="001",
+    ),
+}
+
 test_data = [gslc_test_data, gcov_test_data, gunw_test_data, goff_test_data]
 
 test_granule_paths = [
@@ -104,6 +113,7 @@ test_granule_paths = [
     },
 ]
 
+
 def test_get_granule():
     for data in test_data:
         assert data["granule"] == _get_granule(data["file_name"])
@@ -125,7 +135,17 @@ def test_get_granule_name():
         else:
             assert _get_file_name(granule["path"]) == granule["file_name"]
 
+
 def test_Granule_match():
     for item in test_data:
-        assert item['granule'].get_static_layer_prefix() == item['static_layer_prefix']
+        assert (
+            item["granule"].get_static_layer_prefix(item["granule"].freq_a)
+            == item["static_layer_prefix"]
+        )
     pass
+
+
+def test_static_granule_example():
+    assert static_granule_example["static_granule"] == Granule.parse_static(
+        static_granule_example["file_name"]
+    )

@@ -1,5 +1,7 @@
+import boto3.session
 from dataclasses import dataclass
 from pathlib import Path
+from datetime import datetime
 import re
 import boto3
 import botocore
@@ -12,11 +14,16 @@ logger.setLevel(logging.INFO)
 GRANULE_PATTERN_STR = r"NISAR_L2_\D{2}_(?P<product_type>\D{4})_\d{3}_(?P<track_id>\d{3})_\D_(?P<frame_id>\d{3})_(?:\d{3}_)?(?P<freq_a>\d{2})(?P<freq_b>\d{2})\D*(?P<start_time>\d{8}T\d{6})"
 GRANULE_PATTERN = re.compile(GRANULE_PATTERN_STR)
 
+STATIC_PATTERN_STR = (
+    r"NISAR_L2_STATIC_.*(?P<validity_start_time>\d{8}T\d{6})_(?P<crid>R\d{5})_\D_(?P<counter>\d{3})"
+)
+STATIC_PATTERN = re.compile(STATIC_PATTERN_STR)
 """Maps frequency range bandwidth values to corresponding postings, the first item being the preferred posting for that frequency
 and the remainder being backups in ascending order
 """
 # TODO: verify with Sam, the final ordering is
 # TODO: verify 2.5 format (Is it like '2.5'/'02.5'/'2_5'?)
+# may add extra 0, ie: 0.2 -> 0025, 080 -> 0800, etc, or drop zero (800, 200, 025, etc)
 FREQ_POSTING_MAP = {
     "GCOV": {
         "05": [("080", "080"), ("020", "020"), ("010", "010")],
@@ -74,9 +81,23 @@ FREQ_POSTING_MAP = {
         "77": [("080", "080"), ("020", "020"), ("010", "010")],
     },
 }
+boto_client = boto3.client("s3")
+
+# example static
+# NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001
 
 
 # Template: https://nisar-services.earthdata.nasa.gov/redirect/NISAR_L2_STATIC/{granule_id}.h5
+
+
+@dataclass
+class StaticGranule:
+    file_name: str
+    validity_start_time: str
+    crid: str
+    counter: str
+
+
 @dataclass
 class Granule:
     product_type: str
@@ -89,15 +110,63 @@ class Granule:
     def match(self):
         pass
 
-    def get_static_layer_prefix(self, preferred_posting_idx: int = 0):
-        return f"NISAR_L2_STATIC_{self.track_id}_A_{self.frame_id}_{self._get_posting(preferred_posting_idx)}_"
-        
+    def get_static_layer_prefix(self, freq: str, preferred_posting_idx: int = 0):
+        return f"NISAR_L2_STATIC_{self.track_id}_A_{self.frame_id}_{self._get_posting(freq, preferred_posting_idx)}_"
 
-    def _get_posting(self, preferred_posting_idx: int) -> str:
-        freq = self.freq_a if self.freq_a != '00' else self.freq_b
+    def _get_posting(self, freq: str, preferred_posting_idx: int) -> str:
         posting = FREQ_POSTING_MAP[self.product_type][freq][preferred_posting_idx]
-        return f'{posting[0]}_{posting[1]}'
+        return f"{posting[0]}_{posting[1]}"
 
+    def query_bucket(self):
+        freq = self.freq_a if self.freq_a != "00" else self.freq_b
+        total_postings = len(FREQ_POSTING_MAP[self.product_type][freq])
+
+        target: StaticGranule | None = None
+        for posting in range(total_postings):
+            try:
+                response = boto_client.list_objects_v2(
+                    # TODO: Get the actual bucket name
+                    Bucket="NISAR_L2_STATIC",
+                    MaxKeys=50,
+                    Prefix=self.get_static_layer_prefix(freq, posting),
+                )
+            except Exception as e:
+                raise FileNotFoundError(
+                    f"Unable to find valid file (unable to find source bucket). {e}"
+                )
+
+            for item in response["Contents"]:
+                file_name: str = item["Key"]
+                static_granule = self.parse_static(file_name=file_name)
+
+                validity_start_time = datetime.fromisoformat(static_granule.validity_start_time)
+                start_time = datetime.fromisoformat(self.start_time)
+
+                if validity_start_time < start_time:
+                    if target is None:
+                        target = static_granule
+                    else:
+                        target_date = datetime.fromisoformat(target.validity_start_time)
+                        if target_date < validity_start_time:
+                            target = static_granule
+                        elif target_date == validity_start_time:
+                            if int(target.counter) < int(static_granule.counter):
+                                target = static_granule
+                if target is not None:
+                    break
+            if target is None:
+                raise FileNotFoundError("Unable to find valid static layer for granule")
+
+            return target.file_name
+
+    @staticmethod
+    def parse_static(file_name: str) -> StaticGranule:
+        result = STATIC_PATTERN.match(file_name)
+
+        if result is None:
+            raise ValueError(f"unable to parse static granule {file_name} is not valid")
+
+        return StaticGranule(file_name, **result.groupdict())
 
 
 def lambda_handler(event, context):
@@ -110,6 +179,7 @@ def lambda_handler(event, context):
     if http_method == "GET":
         file_name = _get_file_name(path)
         granule = _get_granule(file_name)
+        static_layer = granule.query_bucket()
 
     pass
     # return {
