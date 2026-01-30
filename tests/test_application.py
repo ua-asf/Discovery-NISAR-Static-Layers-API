@@ -1,5 +1,11 @@
+from datetime import datetime
 import pytest
-from NISARStaticLayersAPI.application import Granule, _get_granule, _get_file_name, StaticGranule
+from NISARStaticLayersAPI.application import (
+    Granule,
+    _get_granule,
+    _get_file_name,
+    StaticGranule,
+)
 
 # Below are examples of how data should be parsed from the granule ids of the 4 L2 products
 gslc_test_data = {
@@ -70,6 +76,7 @@ goff_test_data = gunw_test_data = {
 static_granule_example = {
     "file_name": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001",
     "static_granule": StaticGranule(
+        file_name="NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001",
         validity_start_time="20250921T082112",
         crid="R05000",
         counter="001",
@@ -149,3 +156,34 @@ def test_static_granule_example():
     assert static_granule_example["static_granule"] == Granule.parse_static(
         static_granule_example["file_name"]
     )
+
+
+def test_Granule_get_latest_valid_static_granule():
+    start_time = datetime.fromisoformat("20251021T082112")
+    latest_static_layer = Granule.get_latest_valid_static_granule(
+        test_response, start_time
+    )
+
+    assert (
+        latest_static_layer.file_name
+        == "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_002"
+    )
+    pass
+
+
+test_response = {
+    "Contents": [
+        {
+            "Key": "NISAR_L2_STATIC_132_A_029_020_020_20251121T082112_R05000_J_001",
+        },
+        {
+            "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001",
+        },
+        {
+            "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_002",
+        },
+        {
+            "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250821T082112_R05000_J_002",
+        },
+    ],
+}

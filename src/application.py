@@ -106,8 +106,11 @@ FREQ_POSTING_MAP = {
 class StaticGranule:
     file_name: str
     validity_start_time: str
-    crid: str
+    crid: str  # TODO: Find out crid numbering convention and whether it's relevant, or if only counter is necessary
     counter: str
+
+    def get_datetime(self):
+        return datetime.fromisoformat(self.validity_start_time)
 
 
 @dataclass
@@ -129,49 +132,70 @@ class Granule:
         posting = FREQ_POSTING_MAP[self.product_type][freq][preferred_posting_idx]
         return f"{posting[0]}_{posting[1]}"
 
-    def query_bucket(self):
+    def get_static_layer_file_key(self):
         freq = self.freq_a if self.freq_a != "00" else self.freq_b
         total_postings = len(FREQ_POSTING_MAP[self.product_type][freq])
 
         target: StaticGranule | None = None
         for posting in range(total_postings):
-            try:
-                response = boto_client.list_objects_v2(
-                    # TODO: Get the actual bucket name
-                    Bucket="NISAR_L2_STATIC",
-                    MaxKeys=50,
-                    Prefix=self.get_static_layer_prefix(freq, posting),
-                )
-            except Exception as e:
-                raise FileNotFoundError(
-                    f"Unable to find valid file (unable to find source bucket). {e}"
-                )
+            response = self.query_bucket(freq, posting)
+            start_time = self.get_datetime()
+            target = self.get_latest_valid_static_granule(response, start_time)
+            if target is not None:
+                break
 
-            for item in response["Contents"]:
-                file_name: str = item["Key"]
-                static_granule = self.parse_static(file_name=file_name)
+        if target is None:
+            raise FileNotFoundError("Unable to find valid static layer for granule")
 
-                validity_start_time = datetime.fromisoformat(
-                    static_granule.validity_start_time
-                )
-                start_time = datetime.fromisoformat(self.start_time)
+        return target.file_name
 
-                if validity_start_time < start_time:
-                    if target is None:
+    @staticmethod
+    def get_latest_valid_static_granule(
+        results: dict, start_time: datetime
+    ) -> StaticGranule | None:
+        """Returns latest valid static granule file name from boto3 s3 client response for given granule start time
+        Validity Criteria:
+        1. Validity start time must be before granule start time
+        2. Validity start time must latest available date
+        3. If two static layer share a validity start time, take the one with the higher CRID count
+        """
+        target: StaticGranule | None = None
+        for item in results["Contents"]:
+            file_name: str = item["Key"]
+            static_granule = Granule.parse_static(file_name=file_name)
+
+            validity_start_time = static_granule.get_datetime()
+
+            if validity_start_time < start_time:
+                if target is None:
+                    target = static_granule
+                else:
+                    target_date = target.get_datetime()
+                    if target_date < validity_start_time:
                         target = static_granule
-                    else:
-                        target_date = datetime.fromisoformat(target.validity_start_time)
-                        if target_date < validity_start_time:
+                    elif target_date == validity_start_time:
+                        if int(target.counter) < int(static_granule.counter):
                             target = static_granule
-                        elif target_date == validity_start_time:
-                            if int(target.counter) < int(static_granule.counter):
-                                target = static_granule
-                if target is not None:
-                    break
-            if target is None:
-                raise FileNotFoundError("Unable to find valid static layer for granule")
 
-            return target.file_name
+        return target
+
+    def query_bucket(self, freq: str, posting: int):
+        try:
+            response = boto_client.list_objects_v2(
+                # TODO: Get the actual bucket name
+                Bucket="NISAR_L2_STATIC",
+                MaxKeys=50,
+                Prefix=self.get_static_layer_prefix(freq, posting),
+            )
+        except Exception as e:
+            raise FileNotFoundError(
+                f"Unable to find valid file (unable to find source bucket). {e}"
+            )
+
+        return response
+
+    def get_datetime(self):
+        return datetime.fromisoformat(self.start_time)
 
     @staticmethod
     def parse_static(file_name: str) -> StaticGranule:
@@ -205,7 +229,7 @@ def lambda_handler(event, context):
     if http_method == "GET":
         file_name = _get_file_name(path)
         granule = _get_granule(file_name)
-        static_layer = granule.query_bucket()
+        static_layer = granule.get_static_layer_file_key()
 
     pass
     # return {
