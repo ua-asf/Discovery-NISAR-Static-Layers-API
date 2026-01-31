@@ -121,6 +121,82 @@ test_granule_paths = [
 ]
 
 
+test_s3_responses = [
+    {
+        "Contents": [
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20251121T082112_R05000_J_001",
+            },
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001",
+            },
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_002",
+            },
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250821T082112_R05000_J_002",
+            },
+        ],
+        "start_time": "20251021T082112",
+        "answer": 2,
+    },
+    {
+        "Contents": [
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20251121T082112_R05000_J_001",
+            },
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001",
+            },
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_002",
+            },
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250820T082112_R05000_J_002",
+            },
+        ],
+        "start_time": "20250821T082212",
+        "answer": 3,
+    },
+    {
+        "Contents": [
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20251121T082112_R05000_J_001",
+            },
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20251021T082112_R05000_J_001",
+            },
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_002",
+            },
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250820T082112_R05000_J_002",
+            },
+        ],
+        "start_time": "20251221T082212",
+        "answer": 0,
+    },
+    {
+        "Contents": [
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20251121T082112_R05000_J_001",
+            },
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001",
+            },
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_002",
+            },
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250821T082112_R05000_J_002",
+            },
+        ],
+        "start_time": "20250521T082112",
+        "answer": -1,
+    },
+]
+
+
 def test_get_granule():
     for data in test_data:
         assert data["granule"] == _get_granule(data["file_name"])
@@ -159,31 +235,12 @@ def test_static_granule_example():
 
 
 def test_Granule_get_latest_valid_static_granule():
-    start_time = datetime.fromisoformat("20251021T082112")
-    latest_static_layer = Granule.get_latest_valid_static_granule(
-        test_response, start_time
-    )
+    for response in test_s3_responses:
+        start_time = datetime.fromisoformat(response["start_time"])
+        latest_static_layer = Granule.get_latest_valid_static_granule(response, start_time)
 
-    assert (
-        latest_static_layer.file_name
-        == "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_002"
-    )
-    pass
-
-
-test_response = {
-    "Contents": [
-        {
-            "Key": "NISAR_L2_STATIC_132_A_029_020_020_20251121T082112_R05000_J_001",
-        },
-        {
-            "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001",
-        },
-        {
-            "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_002",
-        },
-        {
-            "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250821T082112_R05000_J_002",
-        },
-    ],
-}
+        if response["answer"] > -1:
+            assert latest_static_layer.file_name == response["Contents"][response["answer"]]["Key"]
+        else:
+            assert latest_static_layer is None
+        pass
