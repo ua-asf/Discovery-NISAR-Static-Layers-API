@@ -1,3 +1,5 @@
+import boto3
+from moto import mock_aws
 from datetime import datetime
 import pytest
 from NISARStaticLayersAPI.application import (
@@ -182,6 +184,27 @@ test_s3_responses = [
                 "Key": "NISAR_L2_STATIC_132_A_029_020_020_20251121T082112_R05000_J_001",
             },
             {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20251121T082112_R05000_J_003",
+            },
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20251021T082112_R05000_J_001",
+            },
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_002",
+            },
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250820T082112_R05000_J_002",
+            },
+        ],
+        "start_time": "20251221T082212",
+        "answer": 1,
+    },
+    {
+        "Contents": [
+            {
+                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20251121T082112_R05000_J_001",
+            },
+            {
                 "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001",
             },
             {
@@ -244,3 +267,22 @@ def test_Granule_get_latest_valid_static_granule():
         else:
             assert latest_static_layer is None
         pass
+
+
+# TODO: mock aws bucket for get_static_layer_file_key() test
+# @mock_aws
+# def get_static_layer_file_key():
+#     conn = boto3.resource("s3", region_name="us-east-1")
+#     # We need to create the bucket since this is all in Moto's 'virtual' AWS account
+#     conn.create_bucket(Bucket="NISAR_L2_STATIC")
+
+#     model_instance = MyModel("steve", "is awesome")
+#     model_instance.save()
+#     list_objects_v2
+
+#     body = conn.Object("mybucket", "steve").get()[
+#         "Body"].read().decode("utf-8")
+
+#     assert body == "is awesome"
+
+#     pass

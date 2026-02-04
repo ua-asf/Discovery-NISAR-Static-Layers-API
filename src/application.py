@@ -7,6 +7,7 @@ import boto3
 import botocore
 import requests
 import logging
+from http import HTTPStatus
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -14,7 +15,9 @@ logger.setLevel(logging.INFO)
 GRANULE_PATTERN_STR = r"NISAR_L2_\D{2}_(?P<product_type>\D{4})_\d{3}_(?P<track_id>\d{3})_\D_(?P<frame_id>\d{3})_(?:\d{3}_)?(?P<freq_a>\d{2})(?P<freq_b>\d{2})\D*(?P<start_time>\d{8}T\d{6})"
 GRANULE_PATTERN = re.compile(GRANULE_PATTERN_STR)
 
-STATIC_PATTERN_STR = r"NISAR_L2_STATIC_.*(?P<validity_start_time>\d{8}T\d{6})_(?P<crid>R\d{5})_\D_(?P<counter>\d{3})"
+STATIC_PATTERN_STR = (
+    r"NISAR_L2_STATIC_.*(?P<validity_start_time>\d{8}T\d{6})_(?P<crid>R\d{5})_\D_(?P<counter>\d{3})"
+)
 STATIC_PATTERN = re.compile(STATIC_PATTERN_STR)
 """Maps frequency range bandwidth values to corresponding postings, the first item being the preferred posting for that frequency
 and the remainder being backups in ascending order
@@ -98,6 +101,10 @@ class StaticGranule:
     def get_datetime(self):
         return datetime.fromisoformat(self.validity_start_time)
 
+    def get_static_layer_url(self):
+        # Tentative cloudfront url
+        return f"https://nisar.asf.earthdatacloud.nasa.gov/NISAR/NISAR_L2_STATIC/{self.file_name[:-3]}/{self.file_name}"
+
 
 @dataclass
 class Granule:
@@ -108,9 +115,6 @@ class Granule:
     freq_b: str
     start_time: str
 
-    def match(self):
-        pass
-
     def get_static_layer_prefix(self, freq: str, preferred_posting_idx: int = 0):
         return f"NISAR_L2_STATIC_{self.track_id}_A_{self.frame_id}_{self._get_posting(freq, preferred_posting_idx)}_"
 
@@ -118,7 +122,7 @@ class Granule:
         posting = FREQ_POSTING_MAP[self.product_type][freq][preferred_posting_idx]
         return f"{posting[0]}_{posting[1]}"
 
-    def get_static_layer_file_key(self):
+    def get_static_layer_granule(self) -> StaticGranule:
         freq = self.freq_a if self.freq_a != "00" else self.freq_b
         total_postings = len(FREQ_POSTING_MAP[self.product_type][freq])
 
@@ -133,7 +137,7 @@ class Granule:
         if target is None:
             raise FileNotFoundError("Unable to find valid static layer for granule")
 
-        return target.file_name
+        return target
 
     @staticmethod
     def get_latest_valid_static_granule(
@@ -169,9 +173,9 @@ class Granule:
         try:
             response = boto_client.list_objects_v2(
                 # TODO: Get the actual bucket name
-                Bucket="NISAR_L2_STATIC",
+                Bucket="s3://sds-n-cumulus-prod-nisar-products",
                 MaxKeys=50,
-                Prefix=self.get_static_layer_prefix(freq, posting),
+                Prefix=f"NISAR_L2_STATIC/{self.get_static_layer_prefix(freq, posting)}",
             )
         except Exception as e:
             raise FileNotFoundError(
@@ -198,16 +202,16 @@ def lambda_handler(event, context):
     print(f"botocore version: {botocore.__version__}")
 
     http_method = event["requestContext"]["http"]["method"]
-    path: str = str(
-        event["requestContext"]["http"]["path"]
-    )  # '.../.../{granule_id}.h5'
+    path: str = str(event["requestContext"]["http"]["path"])  # '.../.../{granule_id}.h5'
 
     if http_method == "GET":
         file_name = _get_file_name(path)
         granule = _get_granule(file_name)
-        static_layer = granule.get_static_layer_file_key()
+        static_layer = granule.get_static_layer_granule()
 
-    pass
+        return static_layer.get_static_layer_url()
+    else:
+        return {"statusCode": "405", "body": HTTPStatus.METHOD_NOT_ALLOWED}
     # return {
     #     'statusCode': 200,
     #     'body': 'Success'
@@ -222,9 +226,6 @@ def _get_granule(file_name: str) -> Granule:
         raise ValueError(f"Source granule file name {file_name} is not valid")
 
     data = result.groupdict()
-
-    if any(v is None for v in data.values()):
-        raise ValueError(f"Source granule file name {file_name} is not valid")
 
     return Granule(**data)
 
