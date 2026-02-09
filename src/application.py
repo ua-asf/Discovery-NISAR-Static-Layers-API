@@ -1,3 +1,5 @@
+import json
+import traceback
 import boto3.session
 from dataclasses import dataclass
 from pathlib import Path
@@ -5,9 +7,9 @@ from datetime import datetime
 import re
 import boto3
 import botocore
-import requests
 import logging
 from http import HTTPStatus
+
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -15,9 +17,7 @@ logger.setLevel(logging.INFO)
 GRANULE_PATTERN_STR = r"NISAR_L2_\D{2}_(?P<product_type>\D{4})_\d{3}_(?P<track_id>\d{3})_\D_(?P<frame_id>\d{3})_(?:\d{3}_)?(?P<freq_a>\d{2})(?P<freq_b>\d{2})\D*(?P<start_time>\d{8}T\d{6})"
 GRANULE_PATTERN = re.compile(GRANULE_PATTERN_STR)
 
-STATIC_PATTERN_STR = (
-    r"NISAR_L2_STATIC_.*(?P<validity_start_time>\d{8}T\d{6})_(?P<crid>R\d{5})_\D_(?P<counter>\d{3})"
-)
+STATIC_PATTERN_STR = r"NISAR_L2_STATIC_.*(?P<validity_start_time>\d{8}T\d{6})_(?P<crid>R\d{5})_\D_(?P<counter>\d{3})"
 STATIC_PATTERN = re.compile(STATIC_PATTERN_STR)
 """Maps frequency range bandwidth values to corresponding postings, the first item being the preferred posting for that frequency
 and the remainder being backups in ascending order
@@ -203,22 +203,31 @@ class Granule:
 def lambda_handler(event, context):
     print(f"boto3 version: {boto3.__version__}")
     print(f"botocore version: {botocore.__version__}")
+    try:
+        http_method = event["requestContext"]["httpMethod"]
+        path: str = str(event["requestContext"]["path"])  # '.../.../{granule_id}.h5'
 
-    http_method = event["requestContext"]["http"]["method"]
-    path: str = str(event["requestContext"]["http"]["path"])  # '.../.../{granule_id}.h5'
+        if http_method == "GET":
+            file_name = _get_file_name(path)
+            granule = _get_granule(file_name)
+            static_layer = granule.get_static_layer_granule()
 
-    if http_method == "GET":
-        file_name = _get_file_name(path)
-        granule = _get_granule(file_name)
-        static_layer = granule.get_static_layer_granule()
-
-        return static_layer.get_static_layer_url()
-    else:
-        return {"statusCode": "405", "body": HTTPStatus.METHOD_NOT_ALLOWED}
-    # return {
-    #     'statusCode': 200,
-    #     'body': 'Success'
-    # }
+            return static_layer.get_static_layer_url()
+        else:
+            return {"statusCode": "405", "body": HTTPStatus.METHOD_NOT_ALLOWED}
+    except ValueError as e:
+        return {
+            "statusCode": 400,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({"error": str(e)}),
+        }
+    except Exception as e:
+        traceback.print_exc()
+        return {
+            "statusCode": 400,
+            "headers": {"Content-Type": "application/json"},
+            "body": "{'error': 'Invalid url format'}",
+        }
 
 
 def _get_granule(file_name: str) -> Granule:
