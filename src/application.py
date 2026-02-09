@@ -82,7 +82,7 @@ FREQ_POSTING_MAP = {
         "77": [("080", "080"), ("020", "020"), ("010", "010")],
     },
 }
-# boto_client = boto3.client("s3")
+boto_client = boto3.client("s3")
 
 # example static
 # NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001
