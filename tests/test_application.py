@@ -268,6 +268,14 @@ def test_Granule_get_latest_valid_static_granule():
             assert latest_static_layer is None
         pass
 
+def test_actual_granule():
+    
+    file_name = 'NISAR_L2_PR_GCOV_045_132_D_029_2005_DHDH_M_20251021T233525_20240621T233601_T00408_N_F_J_001.h5'
+    granule = _get_granule(file_name)
+    granule.S3_BUCKET = 'nisar-static-layer-mock-data'
+    static_layer = granule.get_static_layer_granule()
+    
+    pass
 
 # TODO: mock aws bucket for get_static_layer_file_key() test
 # @mock_aws
