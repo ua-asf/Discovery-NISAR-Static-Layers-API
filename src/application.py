@@ -1,3 +1,4 @@
+import traceback
 import boto3.session
 from dataclasses import dataclass
 from pathlib import Path
@@ -203,34 +204,22 @@ def lambda_handler(event, context):
         path: str = str(
             event["requestContext"]["http"]["path"]
         )  # '.../.../{granule_id}.h5'
+
+        if http_method == "GET":
+            file_name = _get_file_name(path)
+            granule = _get_granule(file_name)
+            static_layer = granule.get_static_layer_granule()
+
+            return static_layer.get_static_layer_url()
+        else:
+            return {"statusCode": "405", "body": HTTPStatus.METHOD_NOT_ALLOWED}
     except Exception as e:
+        traceback.print_exc()
         return {
             "statusCode": 400,
             "headers": {"Content-Type": "application/json"},
             "body": "{'error': 'Invalid url format'}",
         }
-    # if http_method == "GET":
-    #     file_name = _get_file_name(path)
-    #     granule = _get_granule(file_name)
-    #     static_layer = granule.get_static_layer_file_key()
-
-    http_method = event["requestContext"]["http"]["method"]
-    path: str = str(
-        event["requestContext"]["http"]["path"]
-    )  # '.../.../{granule_id}.h5'
-
-    if http_method == "GET":
-        file_name = _get_file_name(path)
-        granule = _get_granule(file_name)
-        static_layer = granule.get_static_layer_granule()
-
-        return static_layer.get_static_layer_url()
-    else:
-        return {"statusCode": "405", "body": HTTPStatus.METHOD_NOT_ALLOWED}
-    # return {
-    #     'statusCode': 200,
-    #     'body': 'Success'
-    # }
 
 
 def _get_granule(file_name: str) -> Granule:
