@@ -1,3 +1,4 @@
+import json
 import traceback
 import boto3.session
 from dataclasses import dataclass
@@ -200,10 +201,8 @@ def lambda_handler(event, context):
     print(f"boto3 version: {boto3.__version__}")
     print(f"botocore version: {botocore.__version__}")
     try:
-        http_method = event["requestContext"]["http"]["method"]
-        path: str = str(
-            event["requestContext"]["http"]["path"]
-        )  # '.../.../{granule_id}.h5'
+        http_method = event["requestContext"]["httpMethod"]
+        path: str = str(event["requestContext"]["path"])  # '.../.../{granule_id}.h5'
 
         if http_method == "GET":
             file_name = _get_file_name(path)
@@ -213,6 +212,12 @@ def lambda_handler(event, context):
             return static_layer.get_static_layer_url()
         else:
             return {"statusCode": "405", "body": HTTPStatus.METHOD_NOT_ALLOWED}
+    except ValueError as e:
+        return {
+            "statusCode": 400,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({"error": str(e)}),
+        }
     except Exception as e:
         traceback.print_exc()
         return {
