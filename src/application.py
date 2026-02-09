@@ -6,20 +6,6 @@ import re
 import boto3
 import botocore
 import logging
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
-
-app = FastAPI()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-DEFAULT_HEADERS = {
-    "Access-Control-Allow-Origin": "*",
-}
 
 
 logger = logging.getLogger()
@@ -207,35 +193,30 @@ class Granule:
         return StaticGranule(file_name, **result.groupdict())
 
 
-@app.get("/")
-def read_root():
-    return {"Status": "Ok"}
-
-
-@app.get("/test")
-def get_layer_redirect():
-    return RedirectResponse(url="https://www.example.com")
-
-
 def lambda_handler(event, context):
     print(f"boto3 version: {boto3.__version__}")
     print(f"botocore version: {botocore.__version__}")
+    try:
+        http_method = event["requestContext"]["http"]["method"]
+        path: str = str(
+            event["requestContext"]["http"]["path"]
+        )  # '.../.../{granule_id}.h5'
+    except Exception as e:
+        return {
+            "statusCode": 400,
+            "headers": {"Content-Type": "application/json"},
+            "body": "{'error': 'Invalid url format'}",
+        }
+    # if http_method == "GET":
+    #     file_name = _get_file_name(path)
+    #     granule = _get_granule(file_name)
+    #     static_layer = granule.get_static_layer_file_key()
 
-    http_method = event["requestContext"]["http"]["method"]
-    path: str = str(
-        event["requestContext"]["http"]["path"]
-    )  # '.../.../{granule_id}.h5'
-
-    if http_method == "GET":
-        file_name = _get_file_name(path)
-        granule = _get_granule(file_name)
-        static_layer = granule.get_static_layer_file_key()
-
-    pass
-    # return {
-    #     'statusCode': 200,
-    #     'body': 'Success'
-    # }
+    return {
+        "statusCode": 200,
+        "headers": {"Content-Type": "application/json"},
+        "body": "Success",
+    }
 
 
 def _get_granule(file_name: str) -> Granule:

@@ -49,15 +49,12 @@ class CdkStaticLayersStack(Stack):
                 ),
             }
 
-        dockerfileDir = "../"
-        self.static_layers_function = _lambda.DockerImageFunction(
+        self.static_layers_function = _lambda.Function(
             self,
-            "StaticLayersServiceDockerFunction",
-            code=_lambda.DockerImageCode.from_image_asset(
-                dockerfileDir,
-            ),
-            function_name="StaticLayersServiceDockerAPIFunction",
-            timeout=Duration.seconds(30),
+            "StaticLayersServiceFunction",
+            runtime=_lambda.Runtime.PYTHON_3_11,
+            code=_lambda.Code.from_asset("src"),
+            handler="application.lambda_handler",
             **lambda_vpc_kwargs,
         )
 
