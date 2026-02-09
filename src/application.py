@@ -114,6 +114,7 @@ class Granule:
     freq_a: str
     freq_b: str
     start_time: str
+    S3_BUCKET: str = 'sds-n-cumulus-prod-nisar-products'
 
     def get_static_layer_prefix(self, freq: str, preferred_posting_idx: int = 0):
         return f"NISAR_L2_STATIC_{self.track_id}_A_{self.frame_id}_{self._get_posting(freq, preferred_posting_idx)}_"
@@ -151,7 +152,9 @@ class Granule:
         """
         target: StaticGranule | None = None
         for item in results["Contents"]:
-            file_name: str = item["Key"]
+            if not item["Key"].endswith('.h5'):
+                continue
+            file_name: str = item["Key"].split('/').pop()
             static_granule = Granule.parse_static(file_name=file_name)
 
             validity_start_time = static_granule.get_datetime()
@@ -173,7 +176,7 @@ class Granule:
         try:
             response = boto_client.list_objects_v2(
                 # TODO: Get the actual bucket name
-                Bucket="s3://sds-n-cumulus-prod-nisar-products",
+                Bucket=self.S3_BUCKET,
                 MaxKeys=50,
                 Prefix=f"NISAR_L2_STATIC/{self.get_static_layer_prefix(freq, posting)}",
             )
