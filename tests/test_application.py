@@ -1,5 +1,4 @@
-import boto3
-from moto import mock_aws
+from unittest.mock import patch
 from datetime import datetime
 import pytest
 from NISARStaticLayersAPI.application import (
@@ -7,7 +6,9 @@ from NISARStaticLayersAPI.application import (
     _get_granule,
     _get_file_name,
     StaticGranule,
+    lambda_handler,
 )
+from http import HTTPStatus
 
 # Below are examples of how data should be parsed from the granule ids of the 4 L2 products
 gslc_test_data = {
@@ -268,14 +269,59 @@ def test_Granule_get_latest_valid_static_granule():
             assert latest_static_layer is None
         pass
 
-def test_actual_granule():
-    
-    file_name = 'NISAR_L2_PR_GCOV_045_132_D_029_2005_DHDH_M_20251021T233525_20240621T233601_T00408_N_F_J_001.h5'
-    granule = _get_granule(file_name)
-    granule.S3_BUCKET = 'nisar-static-layer-mock-data'
-    static_layer = granule.get_static_layer_granule()
-    
-    pass
+
+e2e_test_data = [
+    {
+        "requestContext": {
+            "httpMethod": "GET",
+            "path": "/NISAR_L2_PR_GCOV_045_132_D_029_2005_DHDH_M_20251021T233525_20240621T233601_T00408_N_F_J_001.h5",
+        },
+        "output": "https://nisar.asf.earthdatacloud.nasa.gov/NISAR/NISAR_L2_STATIC/NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_002/NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_002.h5",
+    },
+    {
+        "requestContext": {
+            "httpMethod": "POST",
+            "path": "/NISAR_L2_PR_GCOV_045_132_D_029_2005_DHDH_M_20251021T233525_20240621T233601_T00408_N_F_J_001.h5",
+        },
+        "output": {"statusCode": "405", "body": HTTPStatus.METHOD_NOT_ALLOWED},
+    },
+    {
+        "requestContext": {
+            "httpMethod": "POST",
+            "path": "/NISAR_L2_PR_GCOV_045_132_D_029_2005_DHDH_M_20251021T233525_20240621T233601_T00408_N_F_J_001.h5",
+        },
+        "output": {"statusCode": "405", "body": HTTPStatus.METHOD_NOT_ALLOWED},
+    },
+    {
+        "requestContext": {
+            "httpMethod": "GET",
+            "path": "/extra/NISAR_L2_PR_GCOV_045_132_D_029_2005_DHDH_M_20251021T233525_20240621T233601_T00408_N_F_J_001.h5",
+        },
+        "output": {
+            "statusCode": 400,
+            "headers": {"Content-Type": "application/json"},
+            "body": '{"error": "Invalid file name provided. Expected \\"/{granule_id}.h5\\""}'
+        },
+    },
+    {
+        "requestContext": {
+            "httpMethod": "GET",
+            "path": "/NISAR_L2_PR_GCOV_045_132_D_029_2005_DHDH_M_20201021T233525_20240621T233601_T00408_N_F_J_001.h5",
+        },
+        "output": {
+            "statusCode": 400,
+            "headers": {"Content-Type": "application/json"},
+            "body": "{'error': 'Invalid url format'}"
+        },
+    },
+]
+
+
+def test_e2e():
+    with patch("NISARStaticLayersAPI.application.S3_BUCKET", "nisar-static-layer-mock-data"):
+        for e2e_case in e2e_test_data:
+            assert e2e_case["output"] == lambda_handler(e2e_case, None)
+
 
 # TODO: mock aws bucket for get_static_layer_file_key() test
 # @mock_aws

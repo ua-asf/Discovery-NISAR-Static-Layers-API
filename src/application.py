@@ -19,6 +19,8 @@ GRANULE_PATTERN = re.compile(GRANULE_PATTERN_STR)
 
 STATIC_PATTERN_STR = r"NISAR_L2_STATIC_.*(?P<validity_start_time>\d{8}T\d{6})_(?P<crid>R\d{5})_\D_(?P<counter>\d{3})"
 STATIC_PATTERN = re.compile(STATIC_PATTERN_STR)
+
+S3_BUCKET = 'sds-n-cumulus-prod-nisar-products'
 """Maps frequency range bandwidth values to corresponding postings, the first item being the preferred posting for that frequency
 and the remainder being backups in ascending order
 """
@@ -114,7 +116,6 @@ class Granule:
     freq_a: str
     freq_b: str
     start_time: str
-    S3_BUCKET: str = 'sds-n-cumulus-prod-nisar-products'
 
     def get_static_layer_prefix(self, freq: str, preferred_posting_idx: int = 0):
         return f"NISAR_L2_STATIC_{self.track_id}_A_{self.frame_id}_{self._get_posting(freq, preferred_posting_idx)}_"
@@ -176,15 +177,19 @@ class Granule:
         try:
             response = boto_client.list_objects_v2(
                 # TODO: Get the actual bucket name
-                Bucket=self.S3_BUCKET,
+                Bucket=S3_BUCKET,
                 MaxKeys=50,
                 Prefix=f"NISAR_L2_STATIC/{self.get_static_layer_prefix(freq, posting)}",
             )
+
         except Exception as e:
             raise FileNotFoundError(
                 f"Unable to find valid file (unable to find source bucket). {e}"
             )
 
+        if "Contents" not in response:
+            raise FileNotFoundError("Unable to find valid file (unable to find source bucket).")
+        
         return response
 
     def get_datetime(self):
