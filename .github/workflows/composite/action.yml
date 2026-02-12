@@ -49,7 +49,6 @@ runs:
     - name: Deploy to AWS
       shell: bash
       run: |
-        cd cdk
         cdk deploy ${{inputs.stack-id}} --require-approval=never \
           --context vpc_id=${{ inputs.vpc-id }} \
           --context subnet_ids=${{ inputs.subnet-ids }} \
