@@ -16,6 +16,9 @@ inputs:
   security-group:
     required: false
     type: string
+  role-id:
+    require: true
+    type: string
 
 runs:
   using: "composite"
