@@ -16,7 +16,7 @@ inputs:
   security-group:
     required: false
     type: string
-  role-id:
+  role-name:
     require: true
     type: string
 
@@ -30,7 +30,7 @@ runs:
       uses: aws-actions/configure-aws-credentials@v3
       with:
         role-to-assume: arn:aws:iam::${{ inputs.aws-account-id }}:role/${{ inputs.role-name }}
-        aws-region: ${{ env.AWS_REGION }}
+        aws-region: ${{ vars.AWS_REGION }}
 
     - name: Set up Python
       uses: actions/setup-python@v4
