@@ -1,15 +1,15 @@
-name: StaticLayersAPI deploy action (test)
+name: StaticLayersAPI deploy action (prod)
 
 on:
   push:
     branches:
       - feature-actions
-      - test
+      - prod
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: test
+    environment: edc-prod
     permissions:
       id-token: write
       contents: read
@@ -22,5 +22,8 @@ jobs:
         uses: ./.github/workflows/composite
         with:
           aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
-          role-name: ${{ secrets.OIDC_ROLE_NAME }}
+          vpc-id: ${{ secrets.VPC_ID }}
+          subnet-ids: ${{ secrets.SUBNET_IDS }}
+          security-group: ${{ secrets.SECURITY_GROUP}}
           stack-id: CdkStaticLayersStack
+          role-name: ${{ secrets.OIDC_ROLE_NAME }}
