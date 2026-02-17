@@ -27,3 +27,4 @@ jobs:
           security-group: ${{ secrets.SECURITY_GROUP}}
           stack-id: CdkStaticLayersStack
           role-name: ${{ secrets.OIDC_ROLE_NAME }}
+          region: ${{ vars.AWS_REGION }}

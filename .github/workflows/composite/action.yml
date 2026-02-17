@@ -19,6 +19,9 @@ inputs:
   role-name:
     require: true
     type: string
+  region:
+    require: true
+    type: string
 
 runs:
   using: "composite"
@@ -30,7 +33,7 @@ runs:
       uses: aws-actions/configure-aws-credentials@v3
       with:
         role-to-assume: arn:aws:iam::${{ inputs.aws-account-id }}:role/${{ inputs.role-name }}
-        aws-region: ${{ vars.AWS_REGION }}
+        aws-region: ${{ inputs.region }}
 
     - name: Set up Python
       uses: actions/setup-python@v4

@@ -24,3 +24,4 @@ jobs:
           aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
           role-name: ${{ secrets.OIDC_ROLE_NAME }}
           stack-id: CdkStaticLayersStack
+          region: ${{ vars.AWS_REGION }}
