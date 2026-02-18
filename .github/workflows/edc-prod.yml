@@ -3,7 +3,6 @@ name: StaticLayersAPI deploy action (prod)
 on:
   push:
     branches:
-      - feature-actions
       - prod
 
 jobs:

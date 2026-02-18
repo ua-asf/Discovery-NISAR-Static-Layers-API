@@ -3,7 +3,6 @@ name: StaticLayersAPI deploy action (test)
 on:
   push:
     branches:
-      - feature-actions
       - test
 
 jobs:
