@@ -1,0 +1,26 @@
+name: StaticLayersAPI deploy action (test)
+
+on:
+  push:
+    branches:
+      - test
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: test
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: build
+        uses: ./.github/workflows/composite
+        with:
+          aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
+          role-name: ${{ secrets.OIDC_ROLE_NAME }}
+          stack-id: CdkStaticLayersStack
+          region: ${{ vars.AWS_REGION }}
