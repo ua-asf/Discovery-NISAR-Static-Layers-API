@@ -23,8 +23,8 @@ gslc_test_data = {
             "start_time": "20241021T082112",
         },
     ),
-    "static_layer_prefix": "NISAR_L2_STATIC_132_A_029_005_005_",
-    # "static_layer": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001",
+    "static_layer_prefix": "NISAR_L2_STATIC_132_A_029_0050_0050_",
+    # "static_layer": "NISAR_L2_STATIC_132_A_029_0200_0200_20250921T082112_R05000_J_001",
 }
 
 
@@ -40,8 +40,8 @@ gcov_test_data = {
             "start_time": "20240621T233525",
         }
     ),
-    "static_layer_prefix": "NISAR_L2_STATIC_112_A_085_020_020_",
-    # "static_layer": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001",
+    "static_layer_prefix": "NISAR_L2_STATIC_112_A_085_0200_0200_",
+    # "static_layer": "NISAR_L2_STATIC_132_A_029_0200_0200_20250921T082112_R05000_J_001",
 }
 
 gunw_test_data = {
@@ -56,8 +56,8 @@ gunw_test_data = {
             "start_time": "20240403T084941",
         }
     ),
-    "static_layer_prefix": "NISAR_L2_STATIC_002_A_123_080_080_",
-    # "static_layer": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001",
+    "static_layer_prefix": "NISAR_L2_STATIC_002_A_123_0800_0800_",
+    # "static_layer": "NISAR_L2_STATIC_132_A_029_0200_0200_20250921T082112_R05000_J_001",
 }
 
 goff_test_data = gunw_test_data = {
@@ -72,14 +72,14 @@ goff_test_data = gunw_test_data = {
             "start_time": "20240403T084941",
         }
     ),
-    "static_layer_prefix": "NISAR_L2_STATIC_002_A_123_080_080_",
+    "static_layer_prefix": "NISAR_L2_STATIC_002_A_123_0800_0800_",
     # "static_layer": "NISAR_L2_STATIC_002_A_123_080_080_20250921T082112_R05000_J_001",
 }
 
 static_granule_example = {
-    "file_name": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001",
+    "file_name": "NISAR_L2_STATIC_132_A_029_0200_0200_20250921T082112_R05000_J_001",
     "static_granule": StaticGranule(
-        file_name="NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001",
+        file_name="NISAR_L2_STATIC_132_A_029_0200_0200_20250921T082112_R05000_J_001",
         validity_start_time="20250921T082112",
         crid="R05000",
         counter="001",
@@ -128,16 +128,16 @@ test_s3_responses = [
     {
         "Contents": [
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20251121T082112_R05000_J_001.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20251121T082112_R05000_J_001.h5",
             },
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20250921T082112_R05000_J_001.h5",
             },
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_002.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20250921T082112_R05000_J_002.h5",
             },
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250821T082112_R05000_J_002.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20250821T082112_R05000_J_002.h5",
             },
         ],
         "start_time": "20251021T082112",
@@ -146,16 +146,16 @@ test_s3_responses = [
     {
         "Contents": [
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20251121T082112_R05000_J_001.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20251121T082112_R05000_J_001.h5",
             },
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20250921T082112_R05000_J_001.h5",
             },
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_002.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20250921T082112_R05000_J_002.h5",
             },
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250820T082112_R05000_J_002.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20250820T082112_R05000_J_002.h5",
             },
         ],
         "start_time": "20250821T082212",
@@ -164,16 +164,16 @@ test_s3_responses = [
     {
         "Contents": [
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20251121T082112_R05000_J_001.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20251121T082112_R05000_J_001.h5",
             },
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20251021T082112_R05000_J_001.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20251021T082112_R05000_J_001.h5",
             },
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_002.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20250921T082112_R05000_J_002.h5",
             },
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250820T082112_R05000_J_002.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20250820T082112_R05000_J_002.h5",
             },
         ],
         "start_time": "20251221T082212",
@@ -182,19 +182,19 @@ test_s3_responses = [
     {
         "Contents": [
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20251121T082112_R05000_J_001.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20251121T082112_R05000_J_001.h5",
             },
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20251121T082112_R05000_J_003.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20251121T082112_R05000_J_003.h5",
             },
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20251021T082112_R05000_J_001.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20251021T082112_R05000_J_001.h5",
             },
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_002.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20250921T082112_R05000_J_002.h5",
             },
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250820T082112_R05000_J_002.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20250820T082112_R05000_J_002.h5",
             },
         ],
         "start_time": "20251221T082212",
@@ -203,16 +203,16 @@ test_s3_responses = [
     {
         "Contents": [
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20251121T082112_R05000_J_001.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20251121T082112_R05000_J_001.h5",
             },
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20250921T082112_R05000_J_001.h5",
             },
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_002.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20250921T082112_R05000_J_002.h5",
             },
             {
-                "Key": "NISAR_L2_STATIC_132_A_029_020_020_20250821T082112_R05000_J_002.h5",
+                "Key": "NISAR_L2_STATIC_132_A_029_0200_0200_20250821T082112_R05000_J_002.h5",
             },
         ],
         "start_time": "20250521T082112",
@@ -276,7 +276,7 @@ e2e_test_data = [
             "httpMethod": "GET",
             "path": "/NISAR_L2_PR_GCOV_045_132_D_029_2005_DHDH_M_20251021T233525_20240621T233601_T00408_N_F_J_001.h5",
         },
-        "output": "https://nisar.asf.earthdatacloud.nasa.gov/NISAR/NISAR_L2_STATIC/NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_002/NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_002.h5",
+        "output": "https://nisar.asf.earthdatacloud.nasa.gov/NISAR/NISAR_L2_STATIC/NISAR_L2_STATIC_132_A_029_0200_0200_20250921T082112_R05000_J_002/NISAR_L2_STATIC_132_A_029_0200_0200_20250921T082112_R05000_J_002.h5",
     },
     {
         "requestContext": {
@@ -309,9 +309,31 @@ e2e_test_data = [
             "path": "/NISAR_L2_PR_GCOV_045_132_D_029_2005_DHDH_M_20201021T233525_20240621T233601_T00408_N_F_J_001.h5",
         },
         "output": {
+            "statusCode": 404,
+            "headers": {"Content-Type": "application/json"},
+            "body": "{'error': 'File Not Found'}"
+        },
+    },
+    {
+        "requestContext": {
+            "httpMethod": "GET",
+            "path": "/NISAR_L2_PR_GCOV_045_132_D_029_4040_DHDH_M_20201021T233525_20240621T233601_T00408_N_F_J_001.h5",
+        },
+        "output": {
+            "statusCode": 404,
+            "headers": {"Content-Type": "application/json"},
+            "body": "{'error': 'File Not Found'}"
+        },
+    },
+    {
+        "requestContext": {
+            "httpMethod": "GET",
+            "path": "/NISAR_L2_PR_GCOV_045_132_D___DHDH_M_20251021T233525_20240621T233601_T00408_N_F_J_001.h5",
+        },
+        "output": {
             "statusCode": 400,
             "headers": {"Content-Type": "application/json"},
-            "body": "{'error': 'Invalid url format'}"
+            "body":  '{"error": "Source granule file name NISAR_L2_PR_GCOV_045_132_D___DHDH_M_20251021T233525_20240621T233601_T00408_N_F_J_001.h5 is not valid"}',
         },
     },
 ]
@@ -321,7 +343,6 @@ def test_e2e():
     with patch("NISARStaticLayersAPI.application.S3_BUCKET", "nisar-static-layer-mock-data"):
         for e2e_case in e2e_test_data:
             assert e2e_case["output"] == lambda_handler(e2e_case, None)
-
 
 # TODO: mock aws bucket for get_static_layer_file_key() test
 # @mock_aws
