@@ -17,7 +17,7 @@ logger.setLevel(logging.INFO)
 GRANULE_PATTERN_STR = r"NISAR_L2_\D{2}_(?P<product_type>\D{4})_\d{3}_(?P<track_id>\d{3})_\D_(?P<frame_id>\d{3})_(?:\d{3}_)?(?P<freq_a>\d{2})(?P<freq_b>\d{2})\D*(?P<start_time>\d{8}T\d{6})"
 GRANULE_PATTERN = re.compile(GRANULE_PATTERN_STR)
 
-STATIC_PATTERN_STR = r"NISAR_L2_STATIC_.*(?P<validity_start_time>\d{8}T\d{6})_(?P<crid>R\d{5})_\D_(?P<counter>\d{3})"
+STATIC_PATTERN_STR = r"NISAR_L2_STATIC_.*(?P<validity_start_time>\d{8}T\d{6})_(?P<crid>\D\d{5})_\D_(?P<counter>\d{3})"
 STATIC_PATTERN = re.compile(STATIC_PATTERN_STR)
 
 S3_BUCKET = 'sds-n-cumulus-prod-nisar-products'
