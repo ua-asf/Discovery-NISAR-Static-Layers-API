@@ -1,5 +1,6 @@
 import json
 import traceback
+from typing import Literal
 import boto3.session
 from dataclasses import dataclass
 from pathlib import Path
@@ -9,7 +10,6 @@ import boto3
 import botocore
 import logging
 from http import HTTPStatus
-
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -86,7 +86,7 @@ FREQ_POSTING_MAP = {
 boto_client = boto3.client("s3")
 
 # example static
-# NISAR_L2_STATIC_132_A_029_020_020_20250921T082112_R05000_J_001
+# NISAR_L2_STATIC_132_A_029_0200_0200_20250921T082112_R05000_J_001
 
 
 # Template: https://nisar-services.earthdata.nasa.gov/redirect/NISAR_L2_STATIC/{granule_id}.h5
@@ -96,7 +96,7 @@ boto_client = boto3.client("s3")
 class StaticGranule:
     file_name: str
     validity_start_time: str
-    crid: str  # TODO: Find out crid numbering convention and whether it's relevant, or if only counter is necessary
+    crid: str # EMMmmp (Environment, Major release (zero padded), minor release (zero padded), patch release)
     counter: str
 
     def get_datetime(self):
@@ -106,6 +106,50 @@ class StaticGranule:
         # Tentative cloudfront url
         return f"https://nisar.asf.earthdatacloud.nasa.gov/NISAR/NISAR_L2_STATIC/{self.file_name[:-3]}/{self.file_name}"
 
+    @staticmethod
+    def _parse_crid(crid: str) -> dict:
+        return {
+        'environment': crid[0],
+        'version': crid[1:],
+    }
+
+    @staticmethod
+    def compare_crids(lhs: 'StaticGranule', rhs: 'StaticGranule') -> Literal[-1, 0, 1]:
+        lhs_crid_info = StaticGranule._parse_crid(lhs.crid)
+        rhs_crid_info = StaticGranule._parse_crid(rhs.crid)
+
+        environment_comparison = StaticGranule._compare_crid_env(lhs_crid_info, rhs_crid_info)
+        if environment_comparison != 0:
+            return environment_comparison
+        
+        return StaticGranule._compare_crid_versions(lhs_crid_info, rhs_crid_info)
+        
+    @staticmethod
+    def _compare_crid_env(lhs: dict, rhs: dict) -> Literal[-1, 0, 1]:
+        # TODO: Confirm crid environment initials
+        ranking = {
+            'R': 3,
+            'X': 2,
+            'P': 1,
+        }
+
+        if ranking[lhs['environment']] > ranking[rhs['environment']]:
+            return 1
+        if ranking[lhs['environment']] < ranking[rhs['environment']]:
+            return -1
+        
+        return 0
+
+    @staticmethod
+    def _compare_crid_versions(lhs: dict, rhs: dict) -> Literal[-1, 0, 1]:
+        lhs_version = int(lhs['version'])
+        rhs_version = int(rhs['version'])
+        if lhs_version > rhs_version:
+            return 1
+        elif lhs_version < rhs_version:
+            return -1
+        
+        return 0
 
 @dataclass
 class Granule:
@@ -167,7 +211,11 @@ class Granule:
                     if target_date < validity_start_time:
                         target = static_granule
                     elif target_date == validity_start_time:
-                        if int(target.counter) < int(static_granule.counter):
+                        crid_comparison = StaticGranule.compare_crids(target, static_granule)
+                        if crid_comparison == 0:
+                            if int(target.counter) < int(static_granule.counter):
+                                target = static_granule
+                        elif crid_comparison == -1:
                             target = static_granule
 
         return target

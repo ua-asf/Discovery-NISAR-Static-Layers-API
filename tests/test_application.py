@@ -280,6 +280,13 @@ e2e_test_data = [
     },
     {
         "requestContext": {
+            "httpMethod": "GET",
+            "path": "/NISAR_L2_PR_GCOV_045_132_D_029_2005_DHDH_M_20261221T233525_20240621T233601_T00408_N_F_J_001.h5",
+        },
+        "output": "https://nisar.asf.earthdatacloud.nasa.gov/NISAR/NISAR_L2_STATIC/NISAR_L2_STATIC_132_A_029_0200_0200_20261121T082112_R05050_J_002/NISAR_L2_STATIC_132_A_029_0200_0200_20261121T082112_R05050_J_002.h5",
+    },
+    {
+        "requestContext": {
             "httpMethod": "POST",
             "path": "/NISAR_L2_PR_GCOV_045_132_D_029_2005_DHDH_M_20251021T233525_20240621T233601_T00408_N_F_J_001.h5",
         },
