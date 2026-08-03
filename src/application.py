@@ -251,6 +251,13 @@ class Granule:
 
         return StaticGranule(file_name, **result.groupdict())
 
+def redirect_interface(event, context):
+    return {
+            "statusCode": 302,
+            "headers": {
+                "Location": "https://nisar-docs.asf.alaska.edu/static-layers/"
+            },
+        }
 
 def lambda_handler(event, context):
     print(f"boto3 version: {boto3.__version__}")

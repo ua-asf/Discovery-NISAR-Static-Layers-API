@@ -54,7 +54,7 @@ class CdkStaticLayersStack(Stack):
             "StaticLayersServiceFunction",
             runtime=_lambda.Runtime.PYTHON_3_11,
             code=_lambda.Code.from_asset("src"),
-            handler="application.lambda_handler",
+            handler="application.redirect_interface",
             **lambda_vpc_kwargs,
         )
 
