@@ -252,10 +252,57 @@ class Granule:
         return StaticGranule(file_name, **result.groupdict())
 
 def redirect_interface(event, context):
+    body = """
+    <html>
+        <head>
+            <title>NISAR Static Layers</title>
+        </head>
+        <style>
+            body {
+                background: rgb(28 25 23 / var(--tw-bg-opacity, 1));
+                color: rgb(214, 211, 209);
+                font-family:
+                    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+                    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+                display: flex;
+                place-items: center;
+                flex-direction: column;
+                margin-top: 5%;
+            }
+            h1 {
+                color: #ffffff;
+            }
+            a {
+                color: #ffffff;
+            }
+            hr {
+                width: 80%;
+            }
+        </style>
+        <body>
+            <h1>NISAR Static Layers</h1>
+            <hr />
+            <p>
+                Some ancillary datasets are the same for each frame over time.
+                Rather than packaging these files in the main HDF5 files, they will
+                be made available as a separate static layers file for each frame.
+            </p>
+
+            <p>These NISAR static layers are not yet available.</p>
+            <h3>
+                For more info visit the
+                <a href="https://nisar-docs.asf.alaska.edu/static-layers/"
+                    >NISAR Docs</a
+                >
+            </h3>
+        </body>
+    </html>
+    """
     return {
-            "statusCode": 302,
+            "statusCode": 200,
+            "body": body,
             "headers": {
-                "Location": "https://nisar-docs.asf.alaska.edu/static-layers/"
+                'Content-Type': 'text/html',
             },
         }
 
